@@ -91,6 +91,89 @@
 
 </details>
 
+### 🌟 [SectorZero-ARM](https://github.com/pizslacker/SectorZero-ARM)
+- Instead of navigating real-mode to long-mode transitions, SectorZero-ARM boots directly into a flat 64-bit address space (AArch64), giving you immediate access to modern C development and Memory-Mapped I/O (MMIO).
+<details>
+     <summary><b>🔍 View Aarch644 Bootloader Pipeline</b></summary>
+
+     +-----------------------------------------------------------------------+
+     |                    [VIDEOCORE IV / VI GPU FIRMWARE]                   |
+     |  • ROM Bootloader initializes SDRAM & reads FAT32 boot partition      |
+     |  • Loads `kernel8.img` to physical address 0x00080000                 |
+     |  • Releases ARM Cortex-A53 / A72 cores in 64-bit AArch64 state        |
+     +-----------------------------------------------------------------------+
+                                   |
+                                   | All 4 Cores start at _start (0x80000)
+                                   | Read MPIDR_EL1 (Aff0 bitmask 0x03)
+                                   v
+     +-----------------------------------------------------------------------+
+     |                     [MULTI-CORE PARKING & EL CHECK]                   |
+     |  • Cores 1, 2, 3 (Core ID != 0) ---> Enter low-power WFE loop         |
+     |  • Core 0 (BSP) checks `CurrentEL` register:                          |
+     |      - If EL3 (Secure Monitor): Configure SCR_EL3 & drop to EL2       |
+     |      - If EL2 (Hypervisor):     Set HCR_EL2.RW = 1 (64-bit EL1)       |
+     +-----------------------------------------------------------------------+
+                                   |
+                                   | 1. Disable EL1 traps (CPACR_EL1)
+                                   | 2. Set SPSR_EL2 = 0x3C5 (EL1h, DAIF masked)
+                                   | 3. Set ELR_EL2 = el1_entry
+                                   | 4. Execute `eret` (Exception Return)
+                                   v
+     +-----------------------------------------------------------------------+
+     |                      [EL1 KERNEL INITIALIZATION]                      |
+     |  • Set 64-bit Stack Pointer (`SP_EL1`) below code base (0x00080000)   |
+     |  • Zero-out `.bss` section via 64-bit `str xzr` loop                  |
+     |  • Install Exception Vector Table (`VBAR_EL1` aligned to 2KB / 0x800) |
+     |  • (Optional) Configure MMU: `MAIR_EL1`, `TCR_EL1`, `TTBR0_EL1`       |
+     +-----------------------------------------------------------------------+
+                                   |
+                                   | Branch with Link (`bl kmain`)
+                                   v
+     +-----------------------------------------------------------------------+
+     |                       [AArch64 C KERNEL (EL1)]                        |
+     |  • Initialize PL011 / Mini-UART via MMIO for serial console           |
+     |  • Query VideoCore Mailbox (Channel 8) for Board Rev & Framebuffer    |
+     |  • Unmask IRQ (`msr daifclr, #2`) & start ARM Generic Timer           |
+     +-----------------------------------------------------------------------+
+
+</details>
+<details>
+     <summary><b>🔍 View Memory Map</b></summary>
+
+     Physical Address                  Memory Region / Contents
+     +------------------+---------------------------------------------------------+
+     | 0x00000000       | ARM Stub / Spin Tables (Multicore release addresses)    |
+     |  ├─ 0x000000D8   |  • Core 0–3 Mailbox Spin Addresses (0xD8, 0xE0, 0xE8..) |
+     |  └─ 0x00000100   |  • Device Tree Blob (DTB) / ATAGs passed by GPU         |
+     +------------------+---------------------------------------------------------+
+     | 0x00001000       | Free Low Memory (Often used for Identity Page Tables)   |
+     |  ...             |  • PGD -> PUD -> PMD (TTBR0_EL1 base if MMU enabled)    |
+     +------------------+---------------------------------------------------------+
+     | 0x0007FFFF       | EL1 Kernel Stack Top (`SP_EL1` grows downward <-- )     |
+     +==================+=========================================================+
+     | 0x00080000       | `kernel8.img` Load Address (`_start` Entry Point)       |
+     |  ├─ .text.boot   |  • Core parking, EL2->EL1 drop, BSS clear               |
+     |  ├─ .text / .ro  |  • AArch64 C Kernel (`kmain`), Vector Table (`VBAR_EL1`)|
+     |  ├─ .data        |  • Initialized global variables                         |
+     |  └─ .bss         |  • Zero-initialized data (Page-aligned end)             |
+     +------------------+---------------------------------------------------------+
+     | Kernel End       | Dynamic Memory / Kernel Heap & Page Frame Allocator     |
+     +------------------+---------------------------------------------------------+
+     | 0x3C000000+      | VideoCore GPU Shared RAM (Framebuffer allocated via     |
+     | (Config-based)   | Mailbox Property Tag `0x00040001`)                      |
+     +==================+=========================================================+
+     | 0x3F000000 (Pi3) | BCM2837 / BCM2711 MMIO Peripherals Base                 |
+     | 0xFE000000 (Pi4) |  ├─ +0x0000B880 : VideoCore Mailbox (Read/Write/Status) |
+     |                  |  ├─ +0x00200000 : GPIO Controller (Alt-Func Pin Muxing) |
+     |                  |  ├─ +0x00201000 : PL011 UART0 (TX/RX, Baud Rate Divs)   |
+     |                  |  └─ +0x00215000 : Auxiliary Mini-UART (UART1)           |
+     +------------------+---------------------------------------------------------+
+     | 0x40000000 (Pi3) | ARM Local Peripherals (Core Timer Routing & IRQ Ctrl)   |
+     | 0xFF840000 (Pi4) | GIC-400 (Generic Interrupt Controller - GICD / GICC)    |
+     +------------------+---------------------------------------------------------+
+
+</details>
+
 ---
 
 ## 📊 GitHub Stats
