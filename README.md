@@ -17,47 +17,14 @@
 - Transitions from 16-bit real mode directly into 64-bit long mode.
 - Implements custom PAE paging, PML4 table setup, and inline assembly CPUID feature checks.
 
-<details>
-<summary><b>🔍 View Bootloader Architecture & Mode Transition</b></summary>
-```text
-+-----------------------------------------------------------------------+
-|                       [16-BIT REAL MODE]                              |
-|  • BIOS loads Stage 1 MBR at physical address 0x7C00                  |
-|  • Enable A20 Line & load Stage 2 / Kernel via BIOS INT 0x13          |
-|  • Load 32-bit Global Descriptor Table (lgdt)                         |
-+-----------------------------------------------------------------------+
-                                   |
-                                   | Set CR0.PE = 1 (Protection Enable)
-                                   | Far Jump (ljmp 0x08:protected_mode)
-                                   v
-+-----------------------------------------------------------------------+
-|                     [32-BIT PROTECTED MODE]                           |
-|  • Reload data/stack segment registers (DS, SS, ES, FS, GS)           |
-|  • Check CPUID (0x80000001 -> EDX bit 29) for Long Mode support       |
-|  • Build 4-Level Page Tables (Identity Map):                          |
-|      [PML4] ---> [PDPT] ---> [PD] ---> [2MB Huge Pages / PT]          |
-+-----------------------------------------------------------------------+
-                                   |
-                                   | 1. Load PML4 base into CR3
-                                   | 2. Set CR4.PAE = 1 (Physical Addr Ext)
-                                   | 3. Set EFER.LME = 1 (MSR 0xC0000080)
-                                   | 4. Set CR0.PG = 1 (Paging Enable)
-                                   v
-+-----------------------------------------------------------------------+
-|                   [IA-32e COMPATIBILITY SUB-MODE]                     |
-|  • CPU is now in Long Mode, but executing 32-bit instructions         |
-|  • Load 64-bit GDT (Code Segment with L-bit = 1, D-bit = 0)           |
-+-----------------------------------------------------------------------+
-                                   |
-                                   | Far Jump (ljmp 0x08:long_mode_start)
-                                   | Flushes instruction pipeline
-                                   v
-+-----------------------------------------------------------------------+
-|                        [64-BIT LONG MODE]                             |
-|  • Setup 64-bit stack pointer (RSP) & clear segment registers         |
-|  • Jump to 64-bit C Kernel entry point (kmain)                        |
-+-----------------------------------------------------------------------+
-```
+[16-Bit Real Mode]         [32-Bit Protected]          [64-Bit Long Mode]
++--------------------+     +--------------------+     +----------------------+
+| • BIOS @ 0x7C00    |     | • Verify CPUID     |     | • 64-bit GDT (L=1)   |
+| • Enable A20 Gate  | --> | • Setup PML4 Table | --> | • Init 64-bit Stack  |
+| • Load 32-bit GDT  |     | • Enable CR4.PAE   |     | • Call C Kernel      |
++--------------------+     +--------------------+     +----------------------+
+     (CR0.PE = 1)             (EFER.LME = 1 &              (Far Jump to
+                                CR0.PG = 1)                 kmain() entry)
 
 ---
 
