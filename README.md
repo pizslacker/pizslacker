@@ -17,6 +17,7 @@
 - Transitions from 16-bit real mode directly into 64-bit long mode.
 - Implements custom PAE paging, PML4 table setup, and inline assembly CPUID feature checks.
 <details>
+     
      [16-Bit Real Mode]         [32-Bit Protected]          [64-Bit Long Mode]
      +--------------------+     +--------------------+     +----------------------+
      | • BIOS @ 0x7C00    |     | • Verify CPUID     |     | • 64-bit GDT (L=1)   |
@@ -25,6 +26,7 @@
      +--------------------+     +--------------------+     +----------------------+
           (CR0.PE = 1)             (EFER.LME = 1 &              (Far Jump to
                                      CR0.PG = 1)                 kmain() entry)
+
 </details>
 ---
 
