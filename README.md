@@ -6,14 +6,14 @@
 ## 🛠️ Tech Stack & Systems
 
 - **Languages:** C, C++17, Rust, Go, Zig, Python, Bash, Lua, x86/ARM Assembly
-- **Systems & Kernel:** Linux (Slackware, Debian, Fedora, Ubuntu, Mint), x86 Long Mode, PAE Paging, POSIX Multithreading
+- **Systems & Kernel:** Linux (Slackware, Debian, Fedora, Ubuntu, Mint), `x86_64` Long Mode, `PAE` Paging, POSIX Multithreading
 - **Graphics & Audio:** Raylib, SDL2, Pygame, Custom GLSL Shaders, Procedural Audio
 - **Security & Ops:** SIEM Monitoring, Incident Response & Automation
 
 ## 🚀 Featured Projects
 
 ### 🌟 [SectorZero-64](https://github.com/pizslacker/SectorZero-64)
-*An open-source x86 bare-metal bootloader and C kernel (GPLv3).*
+*An open-source x86_64 bare-metal bootloader and C kernel (GPLv3).*
 - Transitions from 16-bit real mode directly into 64-bit long mode.
 - Implements custom PAE paging, PML4 table setup, and inline assembly CPUID feature checks.
 <details>
