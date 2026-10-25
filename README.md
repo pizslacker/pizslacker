@@ -29,6 +29,18 @@
                                      CR0.PG = 1)                 kmain() entry)
 
 </details>
+<details>
+     <summary><b>🔍 View Memory Map</b></summary>
+
+     0x00000       0x01000              0x07C00       0x08000       0xB8000      0x100000
+     +-------------+--------------------+-------------+-------------+------------+-----------------+
+     |  BIOS IVT   | Page Tables (CR3)  |  Stage 1    |  Stage 2 /  |  VGA Text  | 64-Bit C Kernel |
+     |  & BDA      | PML4 -> PDPT -> PD |  Boot (MBR) |  Low Kernel |  Buffer    | & Extended RAM  |
+     +-------------+--------------------+-------------+-------------+------------+-----------------+
+       Reserved      4KB Aligned (12KB)    512 Bytes     GDT & Init    80x25 Chars   1MB+ High Mem
+
+</details>
+
 ---
 
 ## 📊 GitHub Stats
