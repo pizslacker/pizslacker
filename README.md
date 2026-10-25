@@ -19,7 +19,7 @@
 
 <details>
 <summary><b>🔍 View Bootloader Architecture & Mode Transition</b></summary>
-```
+```text
 +-----------------------------------------------------------------------+
 |                       [16-BIT REAL MODE]                              |
 |  • BIOS loads Stage 1 MBR at physical address 0x7C00                  |
