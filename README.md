@@ -16,7 +16,8 @@
 *An open-source x86 bare-metal bootloader and C kernel (GPLv3).*
 - Transitions from 16-bit real mode directly into 64-bit long mode.
 - Implements custom PAE paging, PML4 table setup, and inline assembly CPUID feature checks.
-<details><summary><b>🔍 View Bootloader Architecture & Mode Transition</b>
+<details>
+     <summary><b>🔍 View Bootloader Architecture & Mode Transition</b>
      
      [16-Bit Real Mode]         [32-Bit Protected]          [64-Bit Long Mode]
      +--------------------+     +--------------------+     +----------------------+
