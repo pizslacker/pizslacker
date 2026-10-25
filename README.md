@@ -19,25 +19,75 @@
 <details>
      <summary><b>🔍 View Bootloader Architecture & Mode Transition</b></summary>
      
-     [16-Bit Real Mode]         [32-Bit Protected]          [64-Bit Long Mode]
-     +--------------------+     +--------------------+     +----------------------+
-     | • BIOS @ 0x7C00    |     | • Verify CPUID     |     | • 64-bit GDT (L=1)   |
-     | • Enable A20 Gate  | --> | • Setup PML4 Table | --> | • Init 64-bit Stack  |
-     | • Load 32-bit GDT  |     | • Enable CR4.PAE   |     | • Call C Kernel      |
-     +--------------------+     +--------------------+     +----------------------+
-          (CR0.PE = 1)             (EFER.LME = 1 &              (Far Jump to
-                                     CR0.PG = 1)                 kmain() entry)
+     +-----------------------------------------------------------------------+
+     |                       [16-BIT REAL MODE]                              |
+     |  • BIOS loads Stage 1 MBR at physical address 0x7C00                  |
+     |  • Enable A20 Line & load Stage 2 / Kernel via BIOS INT 0x13          |
+     |  • Load 32-bit Global Descriptor Table (lgdt)                         |
+     +-----------------------------------------------------------------------+
+                                   |
+                                   | Set CR0.PE = 1 (Protection Enable)
+                                   | Far Jump (ljmp 0x08:protected_mode)
+                                   v
+     +-----------------------------------------------------------------------+
+     |                     [32-BIT PROTECTED MODE]                           |
+     |  • Reload data/stack segment registers (DS, SS, ES, FS, GS)           |
+     |  • Check CPUID (0x80000001 -> EDX bit 29) for Long Mode support       |
+     |  • Build 4-Level Page Tables (Identity Map):                          |
+     |      [PML4] ---> [PDPT] ---> [PD] ---> [2MB Huge Pages / PT]          |
+     +-----------------------------------------------------------------------+
+                                   |
+                                   | 1. Load PML4 base into CR3
+                                   | 2. Set CR4.PAE = 1 (Physical Addr Ext)
+                                   | 3. Set EFER.LME = 1 (MSR 0xC0000080)
+                                   | 4. Set CR0.PG = 1 (Paging Enable)
+                                   v
+     +-----------------------------------------------------------------------+
+     |                   [IA-32e COMPATIBILITY SUB-MODE]                     |
+     |  • CPU is now in Long Mode, but executing 32-bit instructions         |
+     |  • Load 64-bit GDT (Code Segment with L-bit = 1, D-bit = 0)           |
+     +-----------------------------------------------------------------------+
+                                   |
+                                   | Far Jump (ljmp 0x08:long_mode_start)
+                                   | Flushes instruction pipeline
+                                   v
+     +-----------------------------------------------------------------------+
+     |                        [64-BIT LONG MODE]                             |
+     |  • Setup 64-bit stack pointer (RSP) & clear segment registers         |
+     |  • Jump to 64-bit C Kernel entry point (kmain)                        |
+     +-----------------------------------------------------------------------+
 
 </details>
 <details>
      <summary><b>🔍 View Memory Map</b></summary>
 
-     0x00000       0x01000              0x07C00       0x08000       0xB8000      0x100000
-     +-------------+--------------------+-------------+-------------+------------+-----------------+
-     |  BIOS IVT   | Page Tables (CR3)  |  Stage 1    |  Stage 2 /  |  VGA Text  | 64-Bit C Kernel |
-     |  & BDA      | PML4 -> PDPT -> PD |  Boot (MBR) |  Low Kernel |  Buffer    | & Extended RAM  |
-     +-------------+--------------------+-------------+-------------+------------+-----------------+
-       Reserved      4KB Aligned (12KB)    512 Bytes     GDT & Init    80x25 Chars   1MB+ High Mem
+     Physical Address                  Memory Region / Contents
+     +------------------+---------------------------------------------------------+
+     | 0x00000000       | Real Mode IVT (Interrupt Vector Table) & BIOS Data Area |
+     |  ...             | (Reserved by BIOS during 16-bit initialization)         |
+     +------------------+---------------------------------------------------------+
+     | 0x00001000       | 64-Bit Page Tables (Identity Mapped, 4KB Aligned)       |
+     |  ├─ 0x00001000   |  • PML4 (Page Map Level 4)            [CR3 Base]        |
+     |  ├─ 0x00002000   |  • PDPT (Page Directory Pointer Table)                  |
+     |  └─ 0x00003000   |  • PD   (Page Directory - 2MB Huge Pages)               |
+     +------------------+---------------------------------------------------------+
+     | 0x00007000       | Kernel / Bootloader Stack (Grows downward <-- )         |
+     +------------------+---------------------------------------------------------+
+     | 0x00007C00       | Stage 1 MBR Bootloader (512 Bytes, 0xAA55 Signature)    |
+     +------------------+---------------------------------------------------------+
+     | 0x00007E00       | Stage 2 Bootloader / GDT (32-bit & 64-bit Descriptors)  |
+     |  ...             | (Or low-memory C Kernel entry at 0x8000 / 0x10000)      |
+     +------------------+---------------------------------------------------------+
+     | 0x000A0000       | Legacy Video RAM (VRAM)                                 |
+     +------------------+---------------------------------------------------------+
+     | 0x000B8000       | VGA Text Mode Buffer (80x25 chars, 2 bytes per cell)    |
+     +------------------+---------------------------------------------------------+
+     | 0x000C0000       | Video BIOS & Expansion ROMs                             |
+     | 0x000F0000       | Motherboard BIOS ROM (64KB)                             |
+     +==================+=========================================================+
+     | 0x00100000 (1MB) | 64-Bit C Kernel (`kmain` ELF / Flat Binary Image)       |
+     |  ...             | Free Extended Memory (Heap, Frame Allocator, Stack)     |
+     +------------------+---------------------------------------------------------+
 
 </details>
 
