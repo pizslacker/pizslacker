@@ -17,14 +17,14 @@
 - Transitions from 16-bit real mode directly into 64-bit long mode.
 - Implements custom PAE paging, PML4 table setup, and inline assembly CPUID feature checks.
 
-[16-Bit Real Mode]         [32-Bit Protected]          [64-Bit Long Mode]
-+--------------------+     +--------------------+     +----------------------+
-| • BIOS @ 0x7C00    |     | • Verify CPUID     |     | • 64-bit GDT (L=1)   |
-| • Enable A20 Gate  | --> | • Setup PML4 Table | --> | • Init 64-bit Stack  |
-| • Load 32-bit GDT  |     | • Enable CR4.PAE   |     | • Call C Kernel      |
-+--------------------+     +--------------------+     +----------------------+
-     (CR0.PE = 1)             (EFER.LME = 1 &              (Far Jump to
-                                CR0.PG = 1)                 kmain() entry)
+     [16-Bit Real Mode]         [32-Bit Protected]          [64-Bit Long Mode]
+     +--------------------+     +--------------------+     +----------------------+
+     | • BIOS @ 0x7C00    |     | • Verify CPUID     |     | • 64-bit GDT (L=1)   |
+     | • Enable A20 Gate  | --> | • Setup PML4 Table | --> | • Init 64-bit Stack  |
+     | • Load 32-bit GDT  |     | • Enable CR4.PAE   |     | • Call C Kernel      |
+     +--------------------+     +--------------------+     +----------------------+
+          (CR0.PE = 1)             (EFER.LME = 1 &              (Far Jump to
+                                     CR0.PG = 1)                 kmain() entry)
 
 ---
 
