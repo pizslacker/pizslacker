@@ -92,6 +92,7 @@
 </details>
 
 ### 🌟 [SectorZero-ARM](https://github.com/pizslacker/SectorZero-ARM)
+*A bare-metal ARM (AArch64) bootloader and freestanding 64-bit C kernel implementation built from scratch without external libraries or standard runtimes.*
 - Instead of navigating real-mode to long-mode transitions, SectorZero-ARM boots directly into a flat 64-bit address space (AArch64), giving you immediate access to modern C development and Memory-Mapped I/O (MMIO).
 <details>
      <summary><b>🔍 View Aarch644 Bootloader Pipeline</b></summary>
