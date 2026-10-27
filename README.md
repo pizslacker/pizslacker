@@ -16,7 +16,7 @@
 *An open-source x86_64 bare-metal bootloader and C kernel (GPLv3).*
 - Transitions from 16-bit real mode directly into 64-bit long mode.
 - Implements custom PAE paging, PML4 table setup, and inline assembly CPUID feature checks.
-- `Makefile` includes testing by emulation (`qemu`)
+- `Makefile` includes testing by emulation (`qemu -cpu host -enable-kvm`)
 <details>
      <summary><b>🔍 View Bootloader Architecture & Mode Transition</b></summary>
      
@@ -95,6 +95,7 @@
 ### 🌟 [SectorZero-ARM](https://github.com/pizslacker/SectorZero-ARM)
 *A bare-metal ARM (AArch64) bootloader and freestanding 64-bit C kernel implementation built from scratch without external libraries or standard runtimes.*
 - Instead of navigating real-mode to long-mode transitions, SectorZero-ARM boots directly into a flat 64-bit address space (AArch64), giving you immediate access to modern C development and Memory-Mapped I/O (MMIO).
+- - `Makefile` includes testing by emulation (`qemu -march raspi3`)
 <details>
      <summary><b>🔍 View Aarch644 Bootloader Pipeline</b></summary>
 
