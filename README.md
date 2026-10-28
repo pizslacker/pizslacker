@@ -1,5 +1,5 @@
 ## Hi there 👋 My name is k!M Olsen.
-- 📫 How to reach me: kim.olsen@linux.com (email), kim@pizslacker.org (GTalk+GMeet)
+- 📫 How to reach me: kim.olsen@linux.com (email), kim@pizslacker.org (GChat+GMeet)
 
 ---
 
