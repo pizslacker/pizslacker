@@ -8,7 +8,7 @@
 - **Languages:** C, C++17, Rust, Go, Zig, Python, Bash, Lua, x86/ARM Assembly
 - **Systems & Kernel:** Linux (Slackware, Debian, Fedora, Ubuntu, Mint), `x86_64` Long Mode, `PAE` Paging, POSIX Multithreading
 - **Graphics & Audio:** Raylib, SDL2, Pygame, Custom GLSL Shaders, Procedural Audio
-- **Security & Ops:** SIEM Monitoring, Incident Response & Automation
+- **Security & Ops:** SIEM Monitoring, Incident Response, Automation & Networking
 
 ## 🚀 Featured Projects
 
