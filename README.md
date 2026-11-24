@@ -97,7 +97,7 @@
 - Instead of navigating real-mode to long-mode transitions, SectorZero-ARM boots directly into a flat 64-bit address space (AArch64), giving you immediate access to modern C development and Memory-Mapped I/O (MMIO).
 - `Makefile` includes testing by emulation (`qemu-system-aarch64 -machine virt -cpu cortex-a53`)
 <details>
-     <summary><b>🔍 View Aarch644 Bootloader Pipeline</b></summary>
+     <summary><b>🔍 View Aarch64 Bootloader Pipeline</b></summary>
 
      +-----------------------------------------------------------------------+
      |                    [VIDEOCORE IV / VI GPU FIRMWARE]                   |
